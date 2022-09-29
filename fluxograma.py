@@ -1,25 +1,17 @@
-from http import client
 from threading import Thread
 from multiprocessing import Semaphore
-from multiprocessing import BoundedSemaphore
-from random import randint
 import time
 
 nCaixas = 2
-# 2 clientes
 waiting = 0
-
 count = 0
 
-qtdClientes = 2
 s_caixas = Semaphore(0)
-s_atendimento = Semaphore(0)
+s_atendimento = Semaphore(nCaixas)
 s_clientes = Semaphore(nCaixas)
-s_mutex = Semaphore(nCaixas)
-l_clientes = []
+s_mutex = Semaphore(1)
 l_caixas = []
-lista = []
-caixasLivres = nCaixas
+TAC= 0
 
 class Cliente(Thread):
     def __init__(self, id, ta, senha):
@@ -29,22 +21,22 @@ class Cliente(Thread):
         self.senha = senha
 
     def run(self):
-        global caixasLivres, waiting
+        
         s_clientes.acquire()
-        s_mutex.release()
-        waiting += 1
-        s_atendimento.release()
-
+        s_caixas.release()
+        
+        TAC = self.ta
         print(f"{self.id} está sendo atendido \n \n")
         
-        t_end = time.time() + self.ta
+        t_end = time.time() + 30
         while time.time() < t_end:
             a=1
 
-        s_caixas.release()
+
 
         print(f"Fim do atendimento de {self.id}")
         print("=========================================")
+        
 
 class Caixa(Thread):
     def __init__(self, id):
@@ -52,19 +44,23 @@ class Caixa(Thread):
         self.id = id
 
     def run(self):
-        
-        while True:
-            global waiting, caixasLivres
-            s_mutex.acquire()
-            if waiting > 0:
-                waiting -= 1
-                print(f"O caixa {self.id} está atendendo um cliente \n \n")
+            while True:
                 s_caixas.acquire()
+                
+
+                print(f"O caixa {self.id} está atendendo um cliente \n \n")
+
+                
+                t_end = time.time() + 30
+                while time.time() < t_end:
+                    a=1
+
+
                 print(f"O caixa {self.id} está livre \n \n")
 
                 s_clientes.release()
-            else:
-                s_atendimento.acquire()
+
+        
 
 
 def criarCliente(nClientes):
@@ -72,7 +68,7 @@ def criarCliente(nClientes):
     if nClientes > 0:
         for i in range(nClientes):
             id = i + 1
-            ta = 10
+            ta = 10 + i
             senha = i + 1
             Cliente(id, ta, senha).start()
 
@@ -86,4 +82,4 @@ if __name__ == "__main__":
         caixa.start()
 
     nClientes = 4
-    lista = criarCliente(nClientes)
+    criarCliente(nClientes)
