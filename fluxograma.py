@@ -25,8 +25,8 @@ class Cliente(Thread):
     def run(self):
         global TAC
         s_clientes.acquire()
-        s_caixas.release()
-        
+
+        s_mutex.acquire()
         TAC = self.ta
         for caixa in l_caixas:
             if caixa.disponivel == TRUE:
@@ -34,6 +34,9 @@ class Cliente(Thread):
                 caixa_cliente = caixa
                 
                 break
+        
+        s_caixas.release()
+        
 
         print(f"{self.id} está sendo atendido por {caixa_cliente.id}\n \n")
         
@@ -52,17 +55,18 @@ class Caixa(Thread):
         Thread.__init__(self)
         self.id = id
         self.disponivel = TRUE
+        self.ta = 0
 
     def run(self):
             global TAC
             while True:
-                s_caixas.acquire()
-                
-
+                s_caixas.acquire()             
+                t_end = time.time() + TAC
+                s_mutex.release()
                 print(f"O caixa {self.id} está atendendo um cliente \n \n")
                 self.disponivel = FALSE
                 
-                t_end = time.time() + TAC
+                
                 while time.time() < t_end:
                     a=1
 

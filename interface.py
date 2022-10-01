@@ -1,7 +1,11 @@
+from asyncio.windows_events import NULL
 from os import popen
 from tkinter import *
 import tkinter
+from tokenize import Double
 from PIL import Image,ImageTk
+from fluxograma import *
+clients_count = 0
 ID = 0
 SENHA = 0
 TEMPO = 0
@@ -11,15 +15,6 @@ def rgb_to_hex(rgb):
     Função para converter hex to rgb
     '''
     return "#%02x%02x%02x" % rgb  
-
-def click_start():
-    '''
-    Função para lidar com o click do botão start
-    '''
-    print(f'cliente criado com id: {ID}, senha: {SENHA}, tempo: {TEMPO}')
-    ID = 0
-    SENHA = 0
-    TEMPO = 0
 
 def KeyboardInterruptcreate_button(path_img,scale):
     '''
@@ -49,13 +44,31 @@ def click():
     '''
     Função para lidar com o click do start button
     '''
-    if TEMPO == 0:
+    TEMPO = tempo_atendimento_entry.get()
+    if TEMPO.strip() == '':
         print('invalido')
     else:
         print(TEMPO)
+    id = clients_count + 1
+    ta = TEMPO
+    senha = clients_count + 1
+    Cliente(id, ta, senha).start()
+
+def open_popup():
+   top= Toplevel(window)
+   top.geometry("500x500")
+   top.title("Quantidade de caixas")
+   t_text = Label(top,text='Insira a quantidade de caixas',font=('Arial',10))
+   t_text.place(x = 200, y = 200)
+   t_entry = Entry(top,width = 5,font=('Arial',20))
+   t_entry.place(x=200,y = 220)
+
+   initial_img = create_button(path_img='assets/start_button.png',scale=0.5)
+   initial_button = Button(top, bd ='2',command=print('henrique bobão'))
+   initial_button.config(image = initial_img)
+   initial_button.place(x = 220,y = 270)
 # inicializando a janela
 window = Tk()
-
 # min e max size da janela
 window.minsize(1366,768)
 window.maxsize(1366,768)
@@ -64,6 +77,8 @@ window.configure(bg=rgb_to_hex((204,255,255)))
 # criando um canvas
 canvas = Canvas(window,width = 1366,height = 600)
 canvas.pack()
+
+open_popup()
 
 # setando o back ground
 background = (Image.open('assets/background.png'))
@@ -87,7 +102,7 @@ exit_button.place(x = 600,y= 630)
 
 # criando as entry
 
-tempo_atendimento_text = Label(window,text='Insira o tempo de atendimento',font=('Arial',10))
+tempo_atendimento_text = Label(window,text='Insira o tempo de atendimento',font=('Arial',10), bg=rgb_to_hex((204,255,255)))
 tempo_atendimento_text.place(x = 350, y = 630)
 tempo_atendimento_entry = Entry(window,width = 5,font=('Arial',20))
 tempo_atendimento_entry.place(x=350,y = 650)
