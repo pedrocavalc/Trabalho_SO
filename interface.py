@@ -151,7 +151,7 @@ def click():
 
 
 def click_initial_button():
-    global s_clientes, l_caixas, CAIXAS_COUNT, img, canvas, imgCaixa
+    global s_clientes, l_caixas, CAIXAS_COUNT, img, canvas, imgCaixa, top
     num_Caixas = t_entry.get()
     for i in range(int(num_Caixas)):
         l_caixas.append(Caixa(CAIXAS_COUNT+1))
@@ -164,6 +164,7 @@ def click_initial_button():
     for caixa in l_caixas:
         caixa.start()
     s_clientes = Semaphore(int(num_Caixas))
+    top.destroy()
 
 
 
