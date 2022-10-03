@@ -1,10 +1,12 @@
 from tkinter import *
 import tkinter
+from tkinter.scrolledtext import ScrolledText
 from tokenize import Double
 from PIL import Image,ImageTk
 from threading import Thread
 from multiprocessing import Semaphore
 import time
+import sys
 
 CLIENTS_COUNT = 0
 ID = 0
@@ -27,19 +29,26 @@ class Cliente(Thread):
         self.senha = senha
 
     def run(self):
-        global TAC, canvas, clientImage
-        print(self.id)
+        global TAC, canvas, clientImage, l_caixas
+        drawClient = canvas.create_image(0, 500, anchor=NW, image=clientImage)
         s_clientes.acquire()
         
         s_mutex.acquire()
         TAC = int(self.ta)
+        i = 0
         for caixa in l_caixas:
-            if caixa.disponivel == TRUE:
+            if caixa.disponivel == True:
                 
                 caixa_cliente = caixa
+                caixa_cliente.disponivel = False
                 
                 break
-        drawClient = canvas.create_image(0, 500, anchor=NW, image=clientImage)
+
+
+        while i < 350 + ((int(caixa_cliente.id) - 1) * 140):
+            canvas.move(drawClient, 10, 0)
+            i = i + 10
+        
         s_caixas.release()
         
 
@@ -49,10 +58,10 @@ class Cliente(Thread):
         while time.time() < t_end:
             a=1
 
+        canvas.delete(drawClient)
 
-
-        print(f"Fim do atendimento de {self.id}")
-        print("=========================================")
+        print(f"Fim do atendimento de {self.id}\n")
+        print("=========================================\n")
         
 
 class Caixa(Thread):
@@ -69,7 +78,7 @@ class Caixa(Thread):
                 t_end = time.time() + TAC
                 s_mutex.release()
                 print(f"O caixa {self.id} está atendendo um cliente \n \n")
-                self.disponivel = FALSE
+                self.disponivel = False
                 
                 
                 while time.time() < t_end:
@@ -82,6 +91,18 @@ class Caixa(Thread):
                 s_clientes.release()
 
         
+
+class PrintLogger(object):  # create file like object
+    def __init__(self, textbox):  # pass reference to text widget
+        self.textbox = textbox  # keep ref
+    def write(self, text):
+        self.textbox.configure(state="normal")  # make field editable
+        self.textbox.insert("end", text)  # write text to textbox
+        self.textbox.see("end")  # scroll to end
+        self.textbox.configure(state="disabled")  # make field readonly
+    def flush(self):  # needed for file like object
+        pass
+
 
 
 
@@ -123,8 +144,6 @@ def click():
     TEMPO = tempo_atendimento_entry.get()
     if TEMPO.strip() == '':
         print('invalido')
-    else:
-        print(TEMPO)
     id = id + 1
     ta = TEMPO
     senha = CLIENTS_COUNT + 1
@@ -219,6 +238,14 @@ tempo_atendimento_text = Label(window,text='Insira o tempo de atendimento',font=
 tempo_atendimento_text.place(x = 350, y = 630)
 tempo_atendimento_entry = Entry(window,width = 5,font=('Arial',20))
 tempo_atendimento_entry.place(x=350,y = 650)
+
+log_widget = ScrolledText(window, height=10, width=70, font=("consolas", "8", "normal"))
+log_widget.pack()
+log_widget.place(x = 900, y =620)
+
+logger = PrintLogger(log_widget)
+sys.stdout = logger
+sys.stderr = logger
 
 
 
