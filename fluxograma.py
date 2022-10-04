@@ -3,8 +3,8 @@ from threading import Thread
 from multiprocessing import Semaphore
 import time
 
-nClientes = 4
-nCaixas = 2
+nClientes = 8
+nCaixas = 5
 waiting = 0
 count = 0
 

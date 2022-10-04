@@ -68,7 +68,7 @@ class Caixa(Thread):
     def __init__(self, id):
         Thread.__init__(self)
         self.id = id
-        self.disponivel = TRUE
+        self.disponivel = True
         self.ta = 0
 
     def run(self):
@@ -78,15 +78,14 @@ class Caixa(Thread):
                 t_end = time.time() + TAC
                 s_mutex.release()
                 print(f"O caixa {self.id} está atendendo um cliente \n \n")
-                self.disponivel = False
                 
                 
                 while time.time() < t_end:
                     a=1
 
-
+                self.disponivel = True
                 print(f"O caixa {self.id} está livre \n \n")
-                self.disponivel = TRUE
+                
 
                 s_clientes.release()
 
