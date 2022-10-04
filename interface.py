@@ -170,8 +170,8 @@ def click_initial_button():
 # inicializando a janela
 window = Tk()
 # min e max size da janela
-window.minsize(1366,768)
-window.maxsize(1366,768)
+window.minsize(1280,720)
+window.maxsize(1280,720)
 window.configure(bg=rgb_to_hex((204,255,255)))
 
 imgCaixa = create_button("assets/caixa.png", 0.15)
@@ -222,26 +222,26 @@ clientImage = create_button('assets/client.png', 0.125)
 
 # criando os botões de start e exit
 
-start_img = create_button(path_img='assets/start_button.png',scale=0.8)
+start_img = create_button(path_img='assets/start_button.png',scale=0.7)
 start_button = Button(window, bd ='5',command=click)
 start_button.config(image = start_img)
-start_button.place(x = 100,y = 630)
+start_button.place(x = 50,y = 610)
 
-exit_img = create_button(path_img='assets/exit_button.png',scale=0.8)
+exit_img = create_button(path_img='assets/exit_button.png',scale=0.7)
 exit_button = Button(window,bd = '5', command=window.destroy)
 exit_button.config(image = exit_img )
-exit_button.place(x = 600,y= 630)
+exit_button.place(x = 520,y= 610)
 
 # criando as entry
 
 tempo_atendimento_text = Label(window,text='Insira o tempo de atendimento',font=('Arial',10), bg=rgb_to_hex((204,255,255)))
-tempo_atendimento_text.place(x = 350, y = 630)
+tempo_atendimento_text.place(x = 310, y = 630)
 tempo_atendimento_entry = Entry(window,width = 5,font=('Arial',20))
-tempo_atendimento_entry.place(x=350,y = 650)
+tempo_atendimento_entry.place(x=310,y = 650)
 
-log_widget = ScrolledText(window, height=10, width=70, font=("consolas", "8", "normal"))
+log_widget = ScrolledText(window, height=9, width=70, font=("consolas", "8", "normal"))
 log_widget.pack()
-log_widget.place(x = 900, y =620)
+log_widget.place(x = 800, y =600)
 
 logger = PrintLogger(log_widget)
 sys.stdout = logger
