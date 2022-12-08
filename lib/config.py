@@ -3,7 +3,7 @@ def config(debug=False):
     Função para configuração da simulação
     '''
     if debug:
-        args = {'num_process':2,'strategy':'best','memory_size':2000,'system_memory':500,'interval_memory':(200,300),'interval_create':(10,20),'interval_time':(10,20)}
+        args = {'num_process':4,'strategy':'best','memory_size':2000,'system_memory':500,'interval_memory':(200,300),'interval_create':(1,2),'interval_time':(6,10)}
         return args
     args = {}
     args['num_process'] = int (input('Digite o numero de processos a serem criados\n'))
