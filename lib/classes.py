@@ -81,29 +81,52 @@ class System():
                 index_init = self.memory_positions[table]['table_init']
                 #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
                 self.allocate_process(process_pages,index_init,id)
-                print(self.memory_positions)
+                #print(self.memory_positions)
                 return 0
             else:
                 #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
                 return 1
             
-    def best_fit(self,memory,id):
+    def best_fit_alloc(self,memory,id):
         '''
         Algoritmo de best fit 
         '''
         process_pages = self.split_process(memory,id)
         self.max_table()
-        table_names = self.memory_positions.keys()
-        print(self.memory_positions['table1']['tamanho'])
-        menor_tam = self.memory_positions['table1']['tamanho']
-        index = 0
-        for i, table in enumerate(table_names):
+        sorted_keys = sorted(self.memory_positions, key=lambda x: self.memory_positions[x]['tamanho'])
+
+        for i, table in enumerate(sorted_keys):
             tam = self.memory_positions[table]['tamanho']
-            if tam < menor_tam:
-                menor_tam = tam
-                index = i
-        #print(table[i])
+            if process_pages < tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
+                index_init = self.memory_positions[table]['table_init']
+                #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
+                self.allocate_process(process_pages,index_init,id)
+                #print(self.memory_positions)
+                return 0
+            else:
+                #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
+                return 1
         
+
+    def worst_fit_alloc(self,memory,id):
+        '''
+        Algoritmo de best fit 
+        '''
+        process_pages = self.split_process(memory,id)
+        self.max_table()
+        sorted_keys = sorted(self.memory_positions, key=lambda x: self.memory_positions[x]['tamanho'], reverse=True)
+        
+        for i, table in enumerate(sorted_keys):
+            tam = self.memory_positions[table]['tamanho']
+            if process_pages < tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
+                index_init = self.memory_positions[table]['table_init']
+                #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
+                self.allocate_process(process_pages,index_init,id)
+                #print(self.memory_positions)
+                return 0
+            else:
+                #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
+                return 1
             
         
         
@@ -120,6 +143,8 @@ class System():
         
     def deallocate_process(self,id):
         self.memory_table = [None if x == id else x for x in self.memory_table]
+        self.max_table()
+        #(self.memory_positions)
         print(f'processo de id {id} foi desalocado')
 
             

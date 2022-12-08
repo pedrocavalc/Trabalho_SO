@@ -22,7 +22,7 @@ def create_processes(system):
         print(properties)
     return process_list
      
-     
+                 
 def first_fit(process_list,system):
     '''
     Função para escalonamento de processos utilizando o algoritmo first_fit
@@ -70,21 +70,116 @@ def first_fit(process_list,system):
             print(process_running)
             print(system.memory_table)
             return 0
-            
 
-            
 def best_fit(process_list,system):
+    '''
+    Função para escalonamento de processos utilizando o algoritmo best_fit
+    '''
     process_running = []
     process_queue = []
     time_initial = time.time()
     while True:
         for process in process_list:
-                flag = system.best_fit(process.memory,process.id)
+            time_creation = process.create_time + time_initial
+            if time.time() >= time_creation:
+                flag = system.best_fit_alloc(process.memory,process.id)
                 if flag == 0:
                     process.run_time = time.time()
+                    process_running.append(process)
+                    process_list.remove(process)
                     print(f' processo de id {process.id} foi instanciado')
                     print(system.memory_table)
-                    print(system.memory_positions) 
+                    print(system.memory_positions)
+                else:
+                    print(f'Processo em espera{process.id, process.memory}')
+                    process_queue.append(process)
+                    process_list.remove(process)
+                    break
+        for i in range(len(process_queue)):
+            flag = system.best_fit_alloc(process_queue[0].memory,process_queue[0].id)
+            if flag == 0:
+                process_queue[0].run_time = time.time()
+                print(f' processo de id {process_queue[0].id} foi instanciado')
+                process_running.append(process_queue[0])
+                process_queue.pop(0)
+                print(system.memory_table)
+                print(system.memory_positions)
+            else:
+                break         
+        for process in process_running:
+            time_stop = process.run_time + process.execution_time
+            if time.time() >= time_stop:
+                system.deallocate_process(process.id)
+                print(system.memory_table)
+                process_running.remove(process)
+            else: 
+                break
+        if len(process_running) == 0 and len(process_list) == 0 and len(process_queue) == 0:
+            print(process_running)
+            print(system.memory_table)
+            return 0
+
+
+def worst_fit(process_list,system):
+    '''
+    Função para escalonamento de processos utilizando o algoritmo worst_fit
+    '''
+    process_running = []
+    process_queue = []
+    time_initial = time.time()
+    while True:
+        for process in process_list:
+            time_creation = process.create_time + time_initial
+            if time.time() >= time_creation:
+                flag = system.worst_fit_alloc(process.memory,process.id)
+                if flag == 0:
+                    process.run_time = time.time()
+                    process_running.append(process)
+                    process_list.remove(process)
+                    print(f' processo de id {process.id} foi instanciado')
+                    print(system.memory_table)
+                    print(system.memory_positions)
+                else:
+                    print(f'Processo em espera{process.id, process.memory}')
+                    process_queue.append(process)
+                    process_list.remove(process)
+                    break
+        for i in range(len(process_queue)):
+            flag = system.worst_fit_alloc(process_queue[0].memory,process_queue[0].id)
+            if flag == 0:
+                process_queue[0].run_time = time.time()
+                print(f' processo de id {process_queue[0].id} foi instanciado')
+                process_running.append(process_queue[0])
+                process_queue.pop(0)
+                print(system.memory_table)
+                print(system.memory_positions)
+            else:
+                break         
+        for process in process_running:
+            time_stop = process.run_time + process.execution_time
+            if time.time() >= time_stop:
+                system.deallocate_process(process.id)
+                print(system.memory_table)
+                process_running.remove(process)
+            else: 
+                break
+        if len(process_running) == 0 and len(process_list) == 0 and len(process_queue) == 0:
+            print(process_running)
+            print(system.memory_table)
+            return 0
+            
+# def best_fit(process_list,system):
+#     process_running = []
+#     process_queue = []
+#     time_initial = time.time()
+#     while True:
+#         for process in process_list:
+#                 flag = system.best_fit(process.memory,process.id)
+#                 if flag == 0:
+#                     process.run_time = time.time()
+#                     print(f' processo de id {process.id} foi instanciado')
+#                     print(system.memory_table)
+#                     print(system.memory_positions) 
    
    
 def main():
@@ -103,6 +198,10 @@ def main():
     
     if properties['strategy'] == 'best':
         best_fit(process_list,system)
+
+    if properties['strategy'] == 'worst':
+        worst_fit(process_list,system)
+    
     
                 
     
