@@ -40,11 +40,10 @@ def first_fit(process_list,system):
                     process.run_time = time.time()
                     process_running.append(process)
                     process_list.remove(process)
-                    print(f' processo de id {process.id} foi instanciado')
                     print(system.memory_table)
                     print(system.memory_positions)
                 else:
-                    print(f'Processo em espera{process.id, process.memory}')
+                    aaa(f'Processo em espera{process.id, process.memory}')
                     process_queue.append(process)
                     process_list.remove(process)
                     break

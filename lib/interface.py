@@ -1,9 +1,11 @@
 from tkinter import *
 
 from PIL import Image,ImageTk
+from tkinter.scrolledtext import ScrolledText
 import datetime
 import random
 import time
+import sys
 
 plot_rectangles = False
 rectangles_dict = {}
@@ -21,6 +23,7 @@ class System():
         self.interval_create = interval_create
         self.interval_time = interval_time
         self.rect_dict = {}
+        self.label_dict = {}
     
     def memory_structure(self):
         '''
@@ -29,8 +32,6 @@ class System():
         page_size = 30
         num_pages = int(self.memory_size / page_size)
         self.memory_table = [None] * num_pages
-        print(self.memory_table)
-        print(f'O número de páginas para alocação de memória é {len(self.memory_table)}')
 
     def split_process(self,process_memory,id):
         '''
@@ -38,7 +39,6 @@ class System():
         '''
         page_size = 30
         num_pages = math.ceil(process_memory / page_size)
-        #print(f'O número de páginas ocupadas pelo processo de id: {id} é {num_pages}')
         return num_pages
     
     
@@ -76,7 +76,6 @@ class System():
             tam = self.memory_positions[table]['tamanho']
             if process_pages < tam:
                 index_init = self.memory_positions[table]['table_init']
-                print(f'pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
             
     
     def foot_algorithm(self,memory,id=0):
@@ -88,15 +87,21 @@ class System():
         table_names = self.memory_positions.keys()
         for table in table_names:
             tam = self.memory_positions[table]['tamanho']
-            if process_pages < tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
+            if process_pages <= tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
                 index_init = self.memory_positions[table]['table_init']
                 #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
                 self.allocate_process(process_pages,index_init,id)
+                sucess = True
+                break
                 #print(self.memory_positions)
-                return 0
             else:
                 #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
-                return 1
+                sucess = False
+        if(sucess):
+            return 0
+        else:
+            return 1
+
             
     def best_fit_alloc(self,memory,id):
         '''
@@ -108,15 +113,20 @@ class System():
 
         for i, table in enumerate(sorted_keys):
             tam = self.memory_positions[table]['tamanho']
-            if process_pages < tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
+            if process_pages <= tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
                 index_init = self.memory_positions[table]['table_init']
                 #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
                 self.allocate_process(process_pages,index_init,id)
+                sucess = True
+                break
                 #print(self.memory_positions)
-                return 0
             else:
                 #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
-                return 1
+                sucess = False
+        if(sucess):
+            return 0
+        else:
+            return 1
         
 
     def worst_fit_alloc(self,memory,id):
@@ -129,15 +139,20 @@ class System():
         
         for i, table in enumerate(sorted_keys):
             tam = self.memory_positions[table]['tamanho']
-            if process_pages < tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
+            if process_pages <= tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
                 index_init = self.memory_positions[table]['table_init']
                 #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
                 self.allocate_process(process_pages,index_init,id)
+                sucess = True
+                break
                 #print(self.memory_positions)
-                return 0
             else:
                 #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
-                return 1
+                sucess = False
+        if(sucess):
+            return 0
+        else:
+            return 1
             
         
         
@@ -154,6 +169,11 @@ class System():
         for i in range(index_init, index_end):
             self.memory_table[i] = id
             rectangles.append(canvas.create_rectangle(rectangles_dict[f'{i}']['x0'], rectangles_dict[f'{i}']['y0'], rectangles_dict[f'{i}']['x1'], rectangles_dict[f'{i}']['y1'], fill=color[0]))
+        
+        label = Label(window,text=f'Process {id}',font=('Cascadia Code SemiBold',9), bg=rgb_to_hex((204,255,255)))
+        self.label_dict[f'{id}'] = label
+        y_label = ((rectangles_dict[f'{i}']['y0'] + rectangles_dict[f'{i}']['y1'])/2)
+        label.place(x = 200, y = y_label - 50)
         self.rect_dict[f'{id}'] = rectangles
             
         #print(self.memory_table)
@@ -164,9 +184,9 @@ class System():
         self.memory_table = [None if x == id else x for x in self.memory_table]
         for i in self.rect_dict[f'{id}']:
             canvas.delete(i)
+        self.label_dict[f'{id}'].destroy()
         self.max_table()
         #(self.memory_positions)
-        print(f'processo de id {id} foi desalocado')
 
             
         
@@ -197,7 +217,6 @@ def create_processes(system):
         process_list.append(process)
     for process in process_list:
         properties = vars(process)
-        print(properties)
     return process_list
      
                  
@@ -217,9 +236,7 @@ def first_fit(process_list,system):
                     process.run_time = time.time()
                     process_running.append(process)
                     process_list.remove(process)
-                    print(f' processo de id {process.id} foi instanciado')
-                    print(system.memory_table)
-                    print(system.memory_positions)
+
                 else:
                     print(f'Processo em espera{process.id, process.memory}')
                     process_queue.append(process)
@@ -229,25 +246,21 @@ def first_fit(process_list,system):
             flag = system.foot_algorithm(process_queue[0].memory,process_queue[0].id)
             if flag == 0:
                 process_queue[0].run_time = time.time()
-                print(f' processo de id {process_queue[0].id} foi instanciado')
                 process_running.append(process_queue[0])
                 process_queue.pop(0)
-                print(system.memory_table)
-                print(system.memory_positions)
+
             else:
                 break         
         for process in process_running:
             time_stop = process.run_time + process.execution_time
             if time.time() >= time_stop:
                 system.deallocate_process(process.id)
-                print(system.memory_table)
                 process_running.remove(process)
             else: 
                 break
         window.update()
         if len(process_running) == 0 and len(process_list) == 0 and len(process_queue) == 0:
-            print(process_running)
-            print(system.memory_table)
+
             return 0
         
 
@@ -258,6 +271,8 @@ def best_fit(process_list,system):
     process_running = []
     process_queue = []
     time_initial = time.time()
+    # system.allocate_process(10,30,10)
+    # system.allocate_process(10,50,11)
     while True:
         for process in process_list:
             time_creation = process.create_time + time_initial
@@ -267,9 +282,7 @@ def best_fit(process_list,system):
                     process.run_time = time.time()
                     process_running.append(process)
                     process_list.remove(process)
-                    print(f' processo de id {process.id} foi instanciado')
-                    print(system.memory_table)
-                    print(system.memory_positions)
+      
                 else:
                     print(f'Processo em espera{process.id, process.memory}')
                     process_queue.append(process)
@@ -279,25 +292,21 @@ def best_fit(process_list,system):
             flag = system.best_fit_alloc(process_queue[0].memory,process_queue[0].id)
             if flag == 0:
                 process_queue[0].run_time = time.time()
-                print(f' processo de id {process_queue[0].id} foi instanciado')
                 process_running.append(process_queue[0])
                 process_queue.pop(0)
-                print(system.memory_table)
-                print(system.memory_positions)
+ 
             else:
                 break         
         for process in process_running:
             time_stop = process.run_time + process.execution_time
             if time.time() >= time_stop:
                 system.deallocate_process(process.id)
-                print(system.memory_table)
                 process_running.remove(process)
             else: 
                 break
         window.update()
         if len(process_running) == 0 and len(process_list) == 0 and len(process_queue) == 0:
-            print(process_running)
-            print(system.memory_table)
+
             return 0
 
 
@@ -317,9 +326,7 @@ def worst_fit(process_list,system):
                     process.run_time = time.time()
                     process_running.append(process)
                     process_list.remove(process)
-                    print(f' processo de id {process.id} foi instanciado')
-                    print(system.memory_table)
-                    print(system.memory_positions)
+
                 else:
                     print(f'Processo em espera{process.id, process.memory}')
                     process_queue.append(process)
@@ -329,25 +336,21 @@ def worst_fit(process_list,system):
             flag = system.worst_fit_alloc(process_queue[0].memory,process_queue[0].id)
             if flag == 0:
                 process_queue[0].run_time = time.time()
-                print(f' processo de id {process_queue[0].id} foi instanciado')
                 process_running.append(process_queue[0])
                 process_queue.pop(0)
-                print(system.memory_table)
-                print(system.memory_positions)
+
             else:
                 break         
         for process in process_running:
             time_stop = process.run_time + process.execution_time
             if time.time() >= time_stop:
                 system.deallocate_process(process.id)
-                print(system.memory_table)
                 process_running.remove(process)
             else: 
                 break
         window.update()
         if len(process_running) == 0 and len(process_list) == 0 and len(process_queue) == 0:
-            print(process_running)
-            print(system.memory_table)
+
             return 0
             
 
@@ -383,16 +386,21 @@ def create_button(path_img,scale):
     resized_img = ImageTk.PhotoImage(resized_img)
     return resized_img
 
-def click():
-    '''
-    Função para lidar com o click do start button
-    '''
-    pass
+class PrintLogger(object):  # create file like object
+    def __init__(self, textbox):  # pass reference to text widget
+        self.textbox = textbox  # keep ref
+    def write(self, text):
+        self.textbox.configure(state="normal")  # make field editable
+        self.textbox.insert("end", text)  # write text to textbox
+        self.textbox.see("end")  # scroll to end
+        self.textbox.configure(state="disabled")  # make field readonly
+    def flush(self):  # needed for file like object
+        pass
+
 
 
 def click_top_button():
         global canvas, plot_rectangles, imgCaixa, window, rectangles_dict
-        print(num_process.get())
         configs_dict = {
         'num_process': int(num_process.get()),
         'strategy': strategy.get(),
@@ -403,21 +411,20 @@ def click_top_button():
         'interval_time': tuple(int(elemento) for elemento in interval_time.get().split())
         }
 
-        print(configs_dict)
         system = System(**configs_dict)
 
         properties = vars(system)
-        print(f'A configuração do sistema é:\n {properties}')
         process_list = create_processes(system)
         system.memory_structure()
         pile_size = len(system.memory_table)
         page_size = 500/pile_size
         count = 0
         count2 = 0
+        initial = 50 + page_size
         for i in range(pile_size):
             y0 = 50 + count
             count = count + page_size
-            y1 = 58 + count2
+            y1 = initial + count2
             count2 = count2 + page_size
             canvas.create_rectangle(500, y0, 300, y1)
 
@@ -432,6 +439,9 @@ def click_top_button():
 
         window.update()
         system.foot_algorithm(system.system_memory)
+        system.allocate_process(5, 30, 10)
+        system.allocate_process(5, 50, 11)
+
 
         if properties['strategy'] == 'first':
             first_fit(process_list,system)
@@ -532,6 +542,15 @@ interval_time.place(x=50,y = 500)
 initial_button = Button(top, bd ='2',command=click_top_button)
 initial_button.config(image = button_image_top)
 initial_button.place(x = 340,y = 530)
+
+log_widget = ScrolledText(window, height=800, width=40, font=("consolas", "8", "normal"))
+log_widget.pack()
+log_widget.place(x = 520, y =0)
+
+logger = PrintLogger(log_widget)
+sys.stdout = logger
+sys.stderr = logger
+
 
 window.mainloop()
 
