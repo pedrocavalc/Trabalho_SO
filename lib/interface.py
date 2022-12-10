@@ -1,13 +1,185 @@
 from tkinter import *
 
 from PIL import Image,ImageTk
-from classes import System, Process
 import datetime
 import random
 import time
 
 plot_rectangles = False
+rectangles_dict = {}
 global system
+
+import random
+import math
+
+class System():
+    def __init__(self, num_process, strategy, memory_size, system_memory, interval_memory, interval_create, interval_time):
+        self.num_process = num_process
+        self.strategy = strategy
+        self.memory_size = memory_size
+        self.system_memory = system_memory
+        self.interval_memory = interval_memory
+        self.interval_create = interval_create
+        self.interval_time = interval_time
+        self.rectangles = []
+    
+    def memory_structure(self):
+        '''
+        Método para criação da tabela de endereçamento de memória
+        '''
+        page_size = 30
+        num_pages = int(self.memory_size / page_size)
+        self.memory_table = [None] * num_pages
+        print(self.memory_table)
+        print(f'O número de páginas para alocação de memória é {len(self.memory_table)}')
+
+    def split_process(self,process_memory,id):
+        '''
+        Método para calcular o número de páginas que o processo necessita
+        '''
+        page_size = 30
+        num_pages = math.ceil(process_memory / page_size)
+        #print(f'O número de páginas ocupadas pelo processo de id: {id} é {num_pages}')
+        return num_pages
+    
+    
+    def max_table(self):
+        '''
+        Função responsável por gerenciar as posições de memorias livres e seus respectivos tamanhos
+        '''
+        self.memory_positions = {}
+        index_init = 0
+        index_end = 0
+        table_id = 0
+        count = 0
+        for i, page in enumerate(self.memory_table):
+            if page == None and count == 0:
+                index_init = i
+                count = 1
+            if (page != None and count == 1) or (i == len(self.memory_table)-1 and count == 1):
+                index_end = i
+                table_id +=1
+                if index_end == len(self.memory_table) - 1:
+                    self.memory_positions[f'table{table_id}'] = {'table_init':index_init,'table_end':index_end,'tamanho':index_end + 1 - index_init}
+                else:
+                    self.memory_positions[f'table{table_id}'] = {'table_init':index_init,'table_end':index_end,'tamanho':index_end - index_init}
+                count = 0
+                 
+    
+    def test(self,id='bebug'):
+        '''
+        Função para testar
+        '''
+        process_pages = self.split_process(500)
+        self.max_table()
+        table_names = self.memory_positions.keys()
+        for table in table_names:
+            tam = self.memory_positions[table]['tamanho']
+            if process_pages < tam:
+                index_init = self.memory_positions[table]['table_init']
+                print(f'pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
+            
+    
+    def foot_algorithm(self,memory,id=0):
+        '''
+        Algoritmo baseline
+        '''
+        process_pages = self.split_process(memory,id)
+        self.max_table()
+        table_names = self.memory_positions.keys()
+        for table in table_names:
+            tam = self.memory_positions[table]['tamanho']
+            if process_pages < tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
+                index_init = self.memory_positions[table]['table_init']
+                #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
+                self.allocate_process(process_pages,index_init,id)
+                #print(self.memory_positions)
+                return 0
+            else:
+                #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
+                return 1
+            
+    def best_fit_alloc(self,memory,id):
+        '''
+        Algoritmo de best fit 
+        '''
+        process_pages = self.split_process(memory,id)
+        self.max_table()
+        sorted_keys = sorted(self.memory_positions, key=lambda x: self.memory_positions[x]['tamanho'])
+
+        for i, table in enumerate(sorted_keys):
+            tam = self.memory_positions[table]['tamanho']
+            if process_pages < tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
+                index_init = self.memory_positions[table]['table_init']
+                #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
+                self.allocate_process(process_pages,index_init,id)
+                #print(self.memory_positions)
+                return 0
+            else:
+                #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
+                return 1
+        
+
+    def worst_fit_alloc(self,memory,id):
+        '''
+        Algoritmo de best fit 
+        '''
+        process_pages = self.split_process(memory,id)
+        self.max_table()
+        sorted_keys = sorted(self.memory_positions, key=lambda x: self.memory_positions[x]['tamanho'], reverse=True)
+        
+        for i, table in enumerate(sorted_keys):
+            tam = self.memory_positions[table]['tamanho']
+            if process_pages < tam: # Se houver alguma tabela com páginas suficientes na memória aloca o processo
+                index_init = self.memory_positions[table]['table_init']
+                #print(f'O processo {id} pode ser alocado a partir da posição {index_init} utilizando {process_pages} páginas de tamanho')
+                self.allocate_process(process_pages,index_init,id)
+                #print(self.memory_positions)
+                return 0
+            else:
+                #print(f'O process {id} não pode ser alocado pois não há espaço suficiente')
+                return 1
+            
+        
+        
+        
+    def allocate_process(self,process_pages,index_init,id = 0):
+        '''
+        Método para alocar a memória do processo
+        '''
+        global rectangles_dict, window
+        index_end = index_init + process_pages
+        for i in range(index_init, index_end):
+            self.memory_table[i] = id
+            self.rectangles.append(canvas.create_rectangle(rectangles_dict[f'{i}']['x0'], rectangles_dict[f'{i}']['y0'], rectangles_dict[f'{i}']['x1'], rectangles_dict[f'{i}']['y1'], fill='blue'))
+            
+        window.update()
+        #print(self.memory_table)
+        self.max_table()
+        
+    def deallocate_process(self,id):
+        global canvas, window
+        self.memory_table = [None if x == id else x for x in self.memory_table]
+        for i in self.rectangles:
+            canvas.delete(i)
+        window.update()
+        self.max_table()
+        #(self.memory_positions)
+        print(f'processo de id {id} foi desalocado')
+
+            
+        
+        
+class Process():
+    def __init__(self,interval_memory,create_time,interval_time,id):
+        '''
+        Método para a instanciação de um processo dentro do intervalo
+        '''
+        self.memory = random.randrange(interval_memory[0],interval_memory[1])
+        self.create_time = create_time
+        self.execution_time = random.randrange(interval_time[0],interval_time[1])
+        self.id = id
+        
 
 def create_processes(system):
     '''
@@ -214,7 +386,7 @@ def click():
 
 
 def click_top_button():
-        global canvas, plot_rectangles, imgCaixa, window
+        global canvas, plot_rectangles, imgCaixa, window, rectangles_dict
         print(num_process.get())
         configs_dict = {
         'num_process': int(num_process.get()),
@@ -228,27 +400,33 @@ def click_top_button():
 
         print(configs_dict)
         system = System(**configs_dict)
+
         properties = vars(system)
         print(f'A configuração do sistema é:\n {properties}')
         process_list = create_processes(system)
         system.memory_structure()
-        system.foot_algorithm(system.system_memory)
-
-
         pile_size = len(system.memory_table)
         page_size = 500/pile_size
         count = 0
         count2 = 0
         for i in range(pile_size):
-            print(i)
             y0 = 50 + count
             count = count + page_size
             y1 = 58 + count2
             count2 = count2 + page_size
-            variavel = canvas.create_rectangle(500, y0, 300, y1)
-            
-        
+            canvas.create_rectangle(500, y0, 300, y1)
+
+            actual_dict = {
+                'x0': 500,
+                'y0': y0,
+                'x1': 300,
+                'y1': y1,
+            }
+
+            rectangles_dict[f'{i}'] = actual_dict
+
         window.update()
+        system.foot_algorithm(system.system_memory)
 
         if properties['strategy'] == 'first':
             first_fit(process_list,system)
