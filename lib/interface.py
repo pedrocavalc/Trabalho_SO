@@ -7,7 +7,6 @@ import time
 
 plot_rectangles = False
 rectangles_dict = {}
-global system
 
 import random
 import math
@@ -21,7 +20,7 @@ class System():
         self.interval_memory = interval_memory
         self.interval_create = interval_create
         self.interval_time = interval_time
-        self.rectangles = []
+        self.rect_dict = {}
     
     def memory_structure(self):
         '''
@@ -149,20 +148,22 @@ class System():
         '''
         global rectangles_dict, window
         index_end = index_init + process_pages
+        number_of_colors = 8
+        color = ["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(number_of_colors)]
+        rectangles = []
         for i in range(index_init, index_end):
             self.memory_table[i] = id
-            self.rectangles.append(canvas.create_rectangle(rectangles_dict[f'{i}']['x0'], rectangles_dict[f'{i}']['y0'], rectangles_dict[f'{i}']['x1'], rectangles_dict[f'{i}']['y1'], fill='blue'))
+            rectangles.append(canvas.create_rectangle(rectangles_dict[f'{i}']['x0'], rectangles_dict[f'{i}']['y0'], rectangles_dict[f'{i}']['x1'], rectangles_dict[f'{i}']['y1'], fill=color[0]))
+        self.rect_dict[f'{id}'] = rectangles
             
-        window.update()
         #print(self.memory_table)
         self.max_table()
         
     def deallocate_process(self,id):
         global canvas, window
         self.memory_table = [None if x == id else x for x in self.memory_table]
-        for i in self.rectangles:
+        for i in self.rect_dict[f'{id}']:
             canvas.delete(i)
-        window.update()
         self.max_table()
         #(self.memory_positions)
         print(f'processo de id {id} foi desalocado')
@@ -243,10 +244,12 @@ def first_fit(process_list,system):
                 process_running.remove(process)
             else: 
                 break
+        window.update()
         if len(process_running) == 0 and len(process_list) == 0 and len(process_queue) == 0:
             print(process_running)
             print(system.memory_table)
             return 0
+        
 
 def best_fit(process_list,system):
     '''
@@ -291,6 +294,7 @@ def best_fit(process_list,system):
                 process_running.remove(process)
             else: 
                 break
+        window.update()
         if len(process_running) == 0 and len(process_list) == 0 and len(process_queue) == 0:
             print(process_running)
             print(system.memory_table)
@@ -340,6 +344,7 @@ def worst_fit(process_list,system):
                 process_running.remove(process)
             else: 
                 break
+        window.update()
         if len(process_running) == 0 and len(process_list) == 0 and len(process_queue) == 0:
             print(process_running)
             print(system.memory_table)
