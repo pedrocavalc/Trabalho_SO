@@ -1,9 +1,13 @@
+from tkinter import *
+
+from PIL import Image,ImageTk
+from classes import System, Process
 import datetime
 import random
 import time
-from lib.config import config
-from lib.classes import System, Process
-from lib.interface import *
+
+plot_rectangles = False
+global system
 
 def create_processes(system):
     '''
@@ -169,55 +173,182 @@ def worst_fit(process_list,system):
             print(system.memory_table)
             return 0
             
-# def best_fit(process_list,system):
-#     process_running = []
-#     process_queue = []
-#     time_initial = time.time()
-#     while True:
-#         for process in process_list:
-#                 flag = system.best_fit(process.memory,process.id)
-#                 if flag == 0:
-#                     process.run_time = time.time()
-#                     print(f' processo de id {process.id} foi instanciado')
-#                     print(system.memory_table)
-#                     print(system.memory_positions) 
-   
-   
-def main():
+
+
+
+def rgb_to_hex(rgb):
     '''
-    Main function call, para configuração do sistema e escolha do algoritmo
+    Função para converter hex to rgb
     '''
-    window = Tk()
+    return "#%02x%02x%02x" % rgb  
 
-    backgroundTop = (Image.open('assets/city.jpg'))
-    resized_background_top = backgroundTop.resize((800,600), Image.ANTIALIAS)
-    background_image_top = ImageTk.PhotoImage(resized_background_top)
+def KeyboardInterruptcreate_button(path_img,scale):
+    '''
+    Função para criar resizes de imagens do botão e retorna-las para uso
+    '''
+    button_img = (Image.open(path_img))
+    width, height = button_img.size
+    new_width = int(width * scale)
+    new_height = int(height * scale)
+    resized_img = button_img.resize((new_width,new_height), Image.ANTIALIAS)
+    resized_img = ImageTk.PhotoImage(resized_img)
+    return resized_img
 
-    button_image_top = create_button(path_img='assets/start_button.png',scale=0.5)
+def create_button(path_img,scale):
+    '''
+    Função para criar resizes de imagens do botão e retorna-las para uso
+    '''
+    button_img = (Image.open(path_img))
+    width, height = button_img.size
+    new_width = int(width * scale)
+    new_height = int(height * scale)
+    resized_img = button_img.resize((new_width,new_height), Image.ANTIALIAS)
+    resized_img = ImageTk.PhotoImage(resized_img)
+    return resized_img
 
-    main_window(window, background_image_top, button_image_top)
+def click():
+    '''
+    Função para lidar com o click do start button
+    '''
+    pass
 
-    args = config(True)
-    if(configs_dict != {}):
-        system = System(**args)
+
+def click_top_button():
+        global canvas, plot_rectangles, imgCaixa, window
+        print(num_process.get())
+        configs_dict = {
+        'num_process': int(num_process.get()),
+        'strategy': strategy.get(),
+        'memory_size': int(memory_size.get()),
+        'system_memory':int(memory_system.get()),
+        'interval_memory': tuple(int(elemento) for elemento in interval_memory.get().split()),
+        'interval_create': tuple(int(elemento) for elemento in interval_create.get().split()),
+        'interval_time': tuple(int(elemento) for elemento in interval_time.get().split())
+        }
+
+        print(configs_dict)
+        system = System(**configs_dict)
         properties = vars(system)
         print(f'A configuração do sistema é:\n {properties}')
         process_list = create_processes(system)
         system.memory_structure()
         system.foot_algorithm(system.system_memory)
+
+
+        pile_size = len(system.memory_table)
+        page_size = 500/pile_size
+        count = 0
+        count2 = 0
+        for i in range(pile_size):
+            print(i)
+            y0 = 50 + count
+            count = count + page_size
+            y1 = 58 + count2
+            count2 = count2 + page_size
+            variavel = canvas.create_rectangle(500, y0, 300, y1)
+            
+        
+        window.update()
+
         if properties['strategy'] == 'first':
             first_fit(process_list,system)
-        
+
         if properties['strategy'] == 'best':
             best_fit(process_list,system)
 
         if properties['strategy'] == 'worst':
             worst_fit(process_list,system)
-    
-    
-    window.mainloop()
-                
+
+        
+
+# inicializando a janela
+window = Tk()
+# min e max size da janela
+window.minsize(800,600)
+window.maxsize(800,600)
+window.configure(bg=rgb_to_hex((204,255,255)))
+
+
+# criando um canvas
+canvas = Canvas(window,width = 800, height = 800)
+canvas.pack()
+
+canvas.create_rectangle(500, 50, 300, 500)
+# if(plot_rectangles == True):
+#     pile_size = len(system.memory_table)
+#     page_size = 500/pile_size
+#     count = 0
+#     count2 = 0
+#     for i in range(pile_size):
+#         print(i)
+#         y0 = 50 + count
+#         count = count + page_size
+#         y1 = 58 + count2
+#         count2 = count2 + page_size
+#         variavel = canvas.create_rectangle(500, y0, 300, y1)
     
 
-if __name__ == '__main__':
-    main()
+# setando o back ground
+background = (Image.open('assets/background.png'))
+resized_background = background.resize((800,500), Image.ANTIALIAS)
+background_image = ImageTk.PhotoImage(resized_background)
+
+
+top= Toplevel(window)
+
+canvasTop = Canvas(top ,width = 800,height = 800)
+canvasTop.pack()
+backgroundTop = (Image.open('assets/city.jpg'))
+resized_background_top = backgroundTop.resize((800,600), Image.ANTIALIAS)
+background_image_top = ImageTk.PhotoImage(resized_background_top)
+
+button_image_top = create_button(path_img='assets/start_button.png',scale=0.5)
+
+canvasTop.create_image(0,0,anchor=NW,image = background_image_top)
+imgCaixa = create_button("assets/caixa.png", 0.1)
+top.minsize(800,600)
+top.maxsize(800,600)
+
+top.title("Iniciar programa")
+
+t_text = Label(top,text='Insira a quantidade de processos',font=('Cascadia Code SemiBold',10), bg='#696969', fg='#fff')
+t_text.place(x = 50, y = 50)
+num_process= Entry(top,width = 5,font=('Arial',20))
+num_process.place(x=50,y = 80)
+
+t_text = Label(top,text='Insira a estrategia(first, best ou worst)',font=('Cascadia Code SemiBold',10), bg='#696969', fg='#fff')
+t_text.place(x = 50, y = 120)
+strategy = Entry(top,width = 5,font=('Arial',20))
+strategy.place(x=50,y = 150)
+
+t_text = Label(top,text='Insira o tamanho da memória',font=('Cascadia Code SemiBold',10), bg='#696969', fg='#fff')
+t_text.place(x = 50, y = 190)
+memory_size = Entry(top,width = 5,font=('Arial',20))
+memory_size.place(x=50,y = 220)
+
+t_text = Label(top,text='Insira a quantidade de memoria do sistema',font=('Cascadia Code SemiBold',10), bg='#696969', fg='#fff')
+t_text.place(x = 50, y = 260)
+memory_system = Entry(top,width = 5,font=('Arial',20))
+memory_system.place(x=50,y = 290)
+
+t_text = Label(top,text='Insira o range do intervalo de memoria(separado por espaço)',font=('Cascadia Code SemiBold',10), bg='#696969', fg='#fff')
+t_text.place(x = 50, y = 330)
+interval_memory = Entry(top,width = 5,font=('Arial',20))
+interval_memory.place(x=50,y = 360)
+
+t_text = Label(top,text='Insira o range do intervalo de tempo de criação de processos(separado por espaço)',font=('Cascadia Code SemiBold',10), bg='#696969', fg='#fff')
+t_text.place(x = 50, y = 400)
+interval_create = Entry(top,width = 5,font=('Arial',20))
+interval_create.place(x=50,y = 430)
+
+t_text = Label(top,text='Insira o range do intervalo de execução dos processos(separado por espaço)',font=('Cascadia Code SemiBold',10), bg='#696969', fg='#fff')
+t_text.place(x = 50, y = 470)
+interval_time = Entry(top,width = 5,font=('Arial',20))
+interval_time.place(x=50,y = 500)
+
+initial_button = Button(top, bd ='2',command=click_top_button)
+initial_button.config(image = button_image_top)
+initial_button.place(x = 340,y = 530)
+
+window.mainloop()
+

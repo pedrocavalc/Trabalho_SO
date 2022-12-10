@@ -1,5 +1,6 @@
 import random
 import math
+
 class System():
     def __init__(self, num_process, strategy, memory_size, system_memory, interval_memory, interval_create, interval_time):
         self.num_process = num_process
