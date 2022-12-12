@@ -485,8 +485,8 @@ def click_top_button():
 
         window.update()
         system.first_fit_alloc(system.system_memory)
-        system.allocate_process(5, 30, 10)
-        system.allocate_process(5, 50, 11)
+        # system.allocate_process(5, 30, 10)
+        # system.allocate_process(5, 50, 11)
 
 
         if properties['strategy'] == 'first':
